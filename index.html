@@ -64,6 +64,31 @@
         </div>
     </div>
 
+    <!-- Modal de confirmation avec photo de profil -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 2rem;">Confirmez votre compte</h2>
+            
+            <div class="profile-container">
+                <div class="profile-avatar" id="profileAvatar">
+                    <div class="avatar-loader">Chargement...</div>
+                </div>
+                <div class="profile-username" id="profileUsername">-</div>
+            </div>
+            
+            <p style="color: var(--text-dim); margin: 1.5rem 0;">Est-ce bien votre compte Roblox ?</p>
+            
+            <div class="confirm-buttons">
+                <button id="confirmYesBtn" class="confirm-btn confirm-yes">
+                    <span class="btn-text">✓ C'est moi</span>
+                </button>
+                <button id="confirmNoBtn" class="confirm-btn confirm-no">
+                    <span class="btn-text">✗ Changer de compte</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Page Admin (cachée) -->
     <div id="adminPanel" class="admin-panel">
         <div class="admin-container">
@@ -80,42 +105,49 @@
 
             <div class="admin-content" id="adminContent" style="display: none;">
                 <div class="admin-section">
-                    <h3>Configuration du Code Secret</h3>
+                    <h3>🔧 Modifier le Code Secret</h3>
                     <div class="input-group">
-                        <input type="text" id="newSecretCode" placeholder="Nouveau code secret" class="input-field">
+                        <input type="text" id="newCodeInput" placeholder="Nouveau code (ex: BRAINROT123)" class="input-field">
                     </div>
                     <button id="updateCodeBtn" class="redeem-btn">
-                        <span class="btn-text">Mettre à jour le code</span>
+                        <span class="btn-text">✅ Mettre à jour le code</span>
                     </button>
+                    <div style="margin-top: 1rem;">
+                        <div class="config-label">Code actuel :</div>
+                        <div class="code-display" id="currentCode">-</div>
+                    </div>
                 </div>
 
                 <div class="admin-section">
-                    <h3>Limite d'utilisations</h3>
+                    <h3>👥 Modifier la Limite d'utilisations</h3>
                     <div class="input-group">
-                        <input type="number" id="maxUses" placeholder="Nombre max d'utilisations (ex: 2)" class="input-field" min="1">
+                        <input type="number" id="newLimitInput" placeholder="Nombre max (ex: 5)" class="input-field" min="1">
                     </div>
                     <button id="updateLimitBtn" class="redeem-btn">
-                        <span class="btn-text">Mettre à jour la limite</span>
+                        <span class="btn-text">✅ Mettre à jour la limite</span>
                     </button>
+                    <div style="margin-top: 1rem;">
+                        <div class="config-label">Limite actuelle :</div>
+                        <div class="config-value" id="currentLimit">-</div>
+                    </div>
                 </div>
 
                 <div class="admin-section">
-                    <h3>Webhook Discord</h3>
+                    <h3>🔔 Modifier le Webhook Discord</h3>
                     <div class="input-group">
-                        <input type="text" id="webhookUrl" placeholder="URL du webhook Discord" class="input-field">
+                        <input type="text" id="newWebhookInput" placeholder="URL du webhook Discord" class="input-field">
                     </div>
                     <button id="updateWebhookBtn" class="redeem-btn">
-                        <span class="btn-text">Mettre à jour le webhook</span>
+                        <span class="btn-text">✅ Mettre à jour le webhook</span>
                     </button>
+                    <div style="margin-top: 1rem;">
+                        <div class="config-label">État du webhook :</div>
+                        <div class="config-value" id="currentWebhook">-</div>
+                    </div>
                 </div>
 
                 <div class="admin-section">
-                    <h3>Code Actuel</h3>
-                    <div class="code-display" id="currentCode">-</div>
-                </div>
-
-                <div class="admin-section">
-                    <h3>Statistiques</h3>
+                    <h3>📊 Statistiques</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-value" id="totalRedeems">0</div>
@@ -129,11 +161,7 @@
                 </div>
 
                 <button id="resetStatsBtn" class="redeem-btn" style="margin-bottom: 1rem;">
-                    <span class="btn-text">Réinitialiser les statistiques</span>
-                </button>
-
-                <button id="clearAllBtn" class="logout-btn" style="margin-bottom: 1rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5);">
-                    ⚠️ Réinitialiser TOUT (code, stats, webhook)
+                    <span class="btn-text">🔄 Réinitialiser les statistiques</span>
                 </button>
 
                 <button id="adminLogoutBtn" class="logout-btn">Déconnexion</button>
@@ -141,6 +169,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="config.js"></script>
+    <script src="systeme.js"></script>
 </body>
 </html>
