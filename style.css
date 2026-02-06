@@ -529,6 +529,94 @@ body::before {
     box-shadow: 0 15px 40px rgba(88, 101, 242, 0.5);
 }
 
+/* Profile Confirmation */
+.profile-container {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    border: 3px solid var(--primary);
+    overflow: hidden;
+    background: rgba(10, 10, 15, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-loader {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.profile-username {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-light);
+    margin-bottom: 0.5rem;
+}
+
+.confirm-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.confirm-btn {
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.confirm-yes {
+    background: linear-gradient(135deg, var(--success), #16a34a);
+    color: white;
+    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+}
+
+.confirm-yes:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(34, 197, 94, 0.5);
+}
+
+.confirm-no {
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    color: var(--error);
+}
+
+.confirm-no:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: var(--error);
+    transform: translateY(-3px);
+}
+
 /* Panel Admin */
 .admin-panel {
     display: none;
@@ -616,6 +704,28 @@ body::before {
     text-align: center;
     color: var(--primary-light);
     letter-spacing: 0.2rem;
+}
+
+.config-item {
+    margin-bottom: 1.5rem;
+}
+
+.config-label {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+.config-value {
+    background: rgba(10, 10, 15, 0.8);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    color: var(--text);
 }
 
 .stats-grid {
