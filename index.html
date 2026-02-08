@@ -10,6 +10,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Popup de bienvenue (affichée une seule fois) -->
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content welcome-modal">
+            <h2 style="margin-bottom: 1.5rem;">🎮 Bienvenue sur ETFB</h2>
+            <div style="text-align: left; line-height: 1.8; color: var(--text-dim);">
+                <p style="margin-bottom: 1rem; color: var(--accent); font-weight: bold;">⚠️ Ce message ne s'affichera qu'une seule fois, lis-le attentivement !</p>
+                
+                <p style="margin-bottom: 1rem;">
+                    Le but du site est de te donner des <strong>brainrots</strong> sur <strong>Escape Tsunami For Brainrots</strong>, juste en regardant ou en étant actif sur le serveur non officiel mais de notre serveur.
+                </p>
+                
+                <p style="margin-bottom: 1rem;">
+                    Le service te demandera uniquement ton <strong>pseudo Roblox (@)</strong> et le <strong>code secret</strong>. Le code secret, tu peux le voir sur le serveur ou dans des vidéos où il est caché pendant la vidéo.
+                </p>
+                
+                <p style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; border-radius: 0.5rem;">
+                    <strong style="color: #ef4444;">⚠️ IMPORTANT :</strong><br>
+                    Le service ou l'équipe ne te demandera <strong>JAMAIS</strong> un brainrot en échange d'un truc, ni ton mot de passe. Ne te fais pas scam par d'autres personnes !
+                </p>
+            </div>
+            
+            <button id="welcomeCloseBtn" class="redeem-btn" style="margin-top: 1rem;">
+                <span class="btn-text">J'ai compris ✓</span>
+            </button>
+        </div>
+    </div>
+
     <div class="particles"></div>
     
     <div class="container">
@@ -24,7 +51,10 @@
             </div>
 
             <div class="input-group">
-                <input type="text" id="usernameInput" placeholder="Roblox Username" class="input-field">
+                <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 0.5rem; text-align: left;">
+                    ⚠️ Entrez votre <strong>@</strong> (nom d'utilisateur), pas votre nom d'affichage
+                </p>
+                <input type="text" id="usernameInput" placeholder="Roblox @ (nom d'utilisateur, pas le nom d'affichage)" class="input-field">
             </div>
 
             <button id="redeemBtn" class="redeem-btn">
@@ -61,31 +91,6 @@
             <a href="https://discord.gg/votreserveur" target="_blank" class="discord-btn">
                 Rejoindre Discord
             </a>
-        </div>
-    </div>
-
-    <!-- Modal de confirmation avec photo de profil -->
-    <div id="confirmModal" class="modal">
-        <div class="modal-content">
-            <h2 style="margin-bottom: 2rem;">Confirmez votre compte</h2>
-            
-            <div class="profile-container">
-                <div class="profile-avatar" id="profileAvatar">
-                    <div class="avatar-loader">Chargement...</div>
-                </div>
-                <div class="profile-username" id="profileUsername">-</div>
-            </div>
-            
-            <p style="color: var(--text-dim); margin: 1.5rem 0;">Est-ce bien votre compte Roblox ?</p>
-            
-            <div class="confirm-buttons">
-                <button id="confirmYesBtn" class="confirm-btn confirm-yes">
-                    <span class="btn-text">✓ C'est moi</span>
-                </button>
-                <button id="confirmNoBtn" class="confirm-btn confirm-no">
-                    <span class="btn-text">✗ Changer de compte</span>
-                </button>
-            </div>
         </div>
     </div>
 
@@ -169,7 +174,94 @@
         </div>
     </div>
 
+    <script>
+        // ===== PROTECTION CONTRE CLIC DROIT ET F12 =====
+        
+        // Désactiver le clic droit
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Désactiver F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.key === 'F12') {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+I (Outils de développement)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+J (Console)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+Shift+C (Inspecteur)
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                return false;
+            }
+            // Ctrl+U (Voir le code source)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Détection de DevTools (optionnel - ralentit si ouvert)
+        (function() {
+            const devtools = {
+                open: false,
+                orientation: null
+            };
+            const threshold = 160;
+            
+            setInterval(function() {
+                if (window.outerWidth - window.innerWidth > threshold || 
+                    window.outerHeight - window.innerHeight > threshold) {
+                    if (!devtools.open) {
+                        devtools.open = true;
+                        // Rediriger ou bloquer
+                        document.body.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: Arial; font-size: 2rem; color: #ef4444;">🚫 Accès refusé</div>';
+                    }
+                }
+            }, 500);
+        })();
+        
+        // ===== POPUP DE BIENVENUE (UNE SEULE FOIS) =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const welcomeModal = document.getElementById('welcomeModal');
+            const welcomeCloseBtn = document.getElementById('welcomeCloseBtn');
+            const hasSeenWelcome = localStorage.getItem('etfb_welcome_seen');
+            
+            // Afficher la popup si c'est la première visite
+            if (!hasSeenWelcome) {
+                setTimeout(function() {
+                    welcomeModal.classList.add('show');
+                }, 500);
+            }
+            
+            // Fermer la popup et marquer comme vu
+            welcomeCloseBtn.addEventListener('click', function() {
+                welcomeModal.classList.remove('show');
+                localStorage.setItem('etfb_welcome_seen', 'true');
+            });
+            
+            // Empêcher de fermer en cliquant à côté
+            welcomeModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    // Ne rien faire - forcer à cliquer sur le bouton
+                }
+            });
+        });
+    </script>
+
     <script src="config.js"></script>
+    <script src="fingerprint.js"></script>
     <script src="systeme.js"></script>
 </body>
 </html>
