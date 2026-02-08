@@ -48,7 +48,24 @@ const Stats = {
     },
     
     resetStats: function() {
+        // Réinitialiser les stats
         localStorage.removeItem('etfb_stats');
+        
+        // Réinitialiser les empreintes
+        localStorage.removeItem('etfb_fingerprints');
+        
+        // Réinitialiser les IPs
+        localStorage.removeItem('etfb_ips');
+        
+        // Nettoyer IndexedDB
+        try {
+            const request = indexedDB.deleteDatabase('ETFB_Database');
+            request.onsuccess = function() {
+                console.log('✅ IndexedDB nettoyée');
+            };
+        } catch (e) {
+            console.log('⚠️ Erreur lors du nettoyage IndexedDB');
+        }
     },
     
     addUser: function(username) {
