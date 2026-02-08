@@ -1,8 +1,8 @@
 // ===== SYSTÈME DE VALIDATION =====
 
 const System = {
-    // Valider un code
-    validateCode: function(code, username) {
+    // Valider un code avec détection avancée
+    validateCode: async function(code, username) {
         const config = CONFIG.get();
         
         // Vérifier le code (insensible à la casse)
@@ -13,12 +13,45 @@ const System = {
             };
         }
         
-        // Vérifier si l'utilisateur a déjà utilisé le code
+        // Vérifier si l'utilisateur a déjà utilisé le code (par pseudo)
         if (Stats.hasUserRedeemed(username)) {
             return {
                 success: false,
-                message: 'Vous avez déjà utilisé ce code !'
+                message: 'Ce pseudo Roblox a déjà utilisé le code !'
             };
+        }
+        
+        // Générer l'empreinte digitale du navigateur
+        const fingerprint = await Fingerprint.generate();
+        console.log('🔍 Empreinte générée:', fingerprint.substring(0, 16) + '...');
+        
+        // Vérifier l'empreinte dans localStorage
+        if (Fingerprint.hasUsedCode(fingerprint)) {
+            return {
+                success: false,
+                message: 'Ce navigateur a déjà utilisé le code ! 🚫'
+            };
+        }
+        
+        // Vérifier l'empreinte dans IndexedDB (backup)
+        const foundInDB = await Fingerprint.checkIndexedDB(fingerprint);
+        if (foundInDB) {
+            return {
+                success: false,
+                message: 'Ce navigateur a déjà utilisé le code ! 🚫'
+            };
+        }
+        
+        // Obtenir et vérifier l'IP
+        const userIP = await IPDetection.getIP();
+        if (userIP) {
+            console.log('🌐 IP détectée:', userIP);
+            if (IPDetection.hasIPUsedCode(userIP)) {
+                return {
+                    success: false,
+                    message: 'Cette connexion a déjà utilisé le code ! 🚫'
+                };
+            }
         }
         
         // Vérifier la limite d'utilisations
@@ -29,8 +62,12 @@ const System = {
             };
         }
         
-        // Code valide ! Enregistrer l'utilisateur
+        // Code valide ! Enregistrer toutes les données
         Stats.addUser(username);
+        Fingerprint.saveFingerprint(fingerprint);
+        if (userIP) {
+            IPDetection.saveIP(userIP);
+        }
         
         // Calculer les places restantes
         const remainingPlaces = Stats.getRemainingUses();
@@ -39,6 +76,8 @@ const System = {
         if (config.WEBHOOK_URL) {
             this.sendWebhook(username, config.SECRET_CODE, remainingPlaces);
         }
+        
+        console.log('✅ Code validé avec succès pour:', username);
         
         return {
             success: true,
@@ -85,7 +124,6 @@ const System = {
 
 const UI = {
     elements: {},
-    pendingValidation: null, // Stocke les données en attente de confirmation
     
     init: function() {
         // Récupérer les éléments
@@ -94,18 +132,11 @@ const UI = {
             usernameInput: document.getElementById('usernameInput'),
             redeemBtn: document.getElementById('redeemBtn'),
             message: document.getElementById('message'),
-            successModal: document.getElementById('successModal'),
-            confirmModal: document.getElementById('confirmModal'),
-            profileAvatar: document.getElementById('profileAvatar'),
-            profileUsername: document.getElementById('profileUsername'),
-            confirmYesBtn: document.getElementById('confirmYesBtn'),
-            confirmNoBtn: document.getElementById('confirmNoBtn')
+            successModal: document.getElementById('successModal')
         };
         
         // Événements
         this.elements.redeemBtn.addEventListener('click', () => this.handleRedeem());
-        this.elements.confirmYesBtn.addEventListener('click', () => this.confirmAccount());
-        this.elements.confirmNoBtn.addEventListener('click', () => this.cancelConfirmation());
         
         // Permettre Enter pour soumettre
         [this.elements.codeInput, this.elements.usernameInput].forEach(input => {
@@ -138,12 +169,6 @@ const UI = {
                 this.classList.remove('show');
             }
         });
-        
-        this.elements.confirmModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                // Ne pas permettre de fermer en cliquant à côté
-            }
-        });
     },
     
     handleRedeem: async function() {
@@ -157,110 +182,19 @@ const UI = {
         }
         
         if (!username) {
-            this.showMessage('Veuillez entrer votre nom d\'utilisateur Roblox', 'error');
+            this.showMessage('Veuillez entrer votre @ Roblox', 'error');
             return;
         }
         
-        // Désactiver le bouton pendant la vérification
+        // Désactiver le bouton pendant la validation
         this.elements.redeemBtn.disabled = true;
-        this.elements.redeemBtn.querySelector('.btn-text').textContent = 'Vérification...';
+        this.showMessage('Vérification en cours...', 'info');
         
-        // Vérifier que le compte Roblox existe et récupérer l'avatar
-        try {
-            const userInfo = await this.getRobloxUserInfo(username);
-            
-            if (!userInfo) {
-                this.showMessage('Utilisateur Roblox introuvable', 'error');
-                this.elements.redeemBtn.disabled = false;
-                this.elements.redeemBtn.querySelector('.btn-text').textContent = 'Redeem';
-                return;
-            }
-            
-            // Stocker les données pour confirmation
-            this.pendingValidation = {
-                code: code,
-                username: username,
-                userId: userInfo.userId,
-                avatarUrl: userInfo.avatarUrl
-            };
-            
-            // Afficher le modal de confirmation
-            this.showConfirmModal(username, userInfo.avatarUrl);
-            
-        } catch (error) {
-            console.error('Erreur lors de la récupération du profil:', error);
-            this.showMessage('Erreur lors de la vérification du compte', 'error');
-            this.elements.redeemBtn.disabled = false;
-            this.elements.redeemBtn.querySelector('.btn-text').textContent = 'Redeem';
-        }
-    },
-    
-    getRobloxUserInfo: async function(username) {
-        try {
-            // 1. Récupérer l'ID utilisateur depuis le nom
-            const userResponse = await fetch(`https://users.roblox.com/v1/usernames/users`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    usernames: [username],
-                    excludeBannedUsers: true
-                })
-            });
-            
-            const userData = await userResponse.json();
-            
-            if (!userData.data || userData.data.length === 0) {
-                return null;
-            }
-            
-            const userId = userData.data[0].id;
-            
-            // 2. Récupérer l'avatar
-            const avatarResponse = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
-            const avatarData = await avatarResponse.json();
-            
-            let avatarUrl = 'https://via.placeholder.com/150?text=Avatar';
-            if (avatarData.data && avatarData.data.length > 0) {
-                avatarUrl = avatarData.data[0].imageUrl;
-            }
-            
-            return {
-                userId: userId,
-                avatarUrl: avatarUrl
-            };
-            
-        } catch (error) {
-            console.error('Erreur API Roblox:', error);
-            return null;
-        }
-    },
-    
-    showConfirmModal: function(username, avatarUrl) {
-        // Afficher le nom d'utilisateur
-        this.elements.profileUsername.textContent = username;
+        // Valider le code (async maintenant)
+        const result = await System.validateCode(code, username);
         
-        // Afficher l'avatar
-        this.elements.profileAvatar.innerHTML = `<img src="${avatarUrl}" alt="${username}">`;
-        
-        // Réactiver le bouton redeem
+        // Réactiver le bouton
         this.elements.redeemBtn.disabled = false;
-        this.elements.redeemBtn.querySelector('.btn-text').textContent = 'Redeem';
-        
-        // Afficher le modal
-        this.elements.confirmModal.classList.add('show');
-    },
-    
-    confirmAccount: function() {
-        // Cacher le modal de confirmation
-        this.elements.confirmModal.classList.remove('show');
-        
-        // Valider le code
-        const result = System.validateCode(
-            this.pendingValidation.code,
-            this.pendingValidation.username
-        );
         
         if (result.success) {
             // Afficher le modal de succès
@@ -272,21 +206,6 @@ const UI = {
         } else {
             this.showMessage(result.message, 'error');
         }
-        
-        // Nettoyer les données en attente
-        this.pendingValidation = null;
-    },
-    
-    cancelConfirmation: function() {
-        // Cacher le modal
-        this.elements.confirmModal.classList.remove('show');
-        
-        // Nettoyer les données
-        this.pendingValidation = null;
-        
-        // Réinitialiser le champ username pour permettre de changer
-        this.elements.usernameInput.value = '';
-        this.elements.usernameInput.focus();
     },
     
     showMessage: function(text, type) {
