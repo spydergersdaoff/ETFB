@@ -777,6 +777,35 @@ body::before {
     transform: translateY(-2px);
 }
 
+/* Welcome Modal */
+.welcome-modal {
+    max-width: 600px;
+    text-align: center;
+}
+
+.welcome-modal h2 {
+    color: var(--primary-light);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    text-shadow: 0 0 20px var(--glow);
+}
+
+.welcome-modal p {
+    margin-bottom: 1rem;
+}
+
+.welcome-modal strong {
+    color: var(--primary-light);
+}
+
+/* Protection contre la sélection */
+body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .logo {
